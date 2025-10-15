@@ -1,0 +1,5 @@
+SET foo 123
+SET foo 123
+SET foo 123
+SET foo 123
+DEL foo

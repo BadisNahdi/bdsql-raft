@@ -1,0 +1,127 @@
+{
+  "op": "INSERT",
+  "collection": "users",
+  "document": {
+    "username": "john_doe",
+    "email": "john@example.com",
+    "age": 30,
+    "status": "active",
+    "_id": "users_1760457252163_1",
+    "_createdAt": 1760457252173,
+    "_updatedAt": 1760457252173
+  }
+}
+{
+  "op": "INSERT",
+  "collection": "users",
+  "document": {
+    "username": "john_doe",
+    "email": "john@example.com",
+    "age": 30,
+    "status": "active",
+    "_id": "users_1760459786746_1",
+    "_createdAt": 1760459786749,
+    "_updatedAt": 1760459786749
+  }
+}
+{
+  "op": "INSERT",
+  "collection": "47",
+  "document": {
+    "username": "john_doe",
+    "email": "john@example.com",
+    "age": 30,
+    "status": "active",
+    "_id": "47_1760459786753_1",
+    "_createdAt": 1760459786753,
+    "_updatedAt": 1760459786753
+  }
+}
+{
+  "op": "INSERT",
+  "collection": "5",
+  "document": {
+    "username": "john_doe",
+    "email": "john@example.com",
+    "age": 30,
+    "status": "active",
+    "_id": "5_1760459792128_1",
+    "_createdAt": 1760459792128,
+    "_updatedAt": 1760459792128
+  }
+}
+{
+  "op": "INSERT",
+  "collection": "6",
+  "document": {
+    "username": "test2",
+    "email": "john@example.com",
+    "age": 30,
+    "status": "active",
+    "_id": "6_1760459907933_1",
+    "_createdAt": 1760459907933,
+    "_updatedAt": 1760459907933
+  }
+}
+{
+  "op": "INSERT",
+  "collection": "users",
+  "document": {
+    "username": "john_doe",
+    "email": "john@example.com",
+    "age": 30,
+    "status": "active",
+    "_id": "users_1760467286483_1",
+    "_createdAt": 1760467286491,
+    "_updatedAt": 1760467286491
+  }
+}
+{
+  "op": "INSERT",
+  "collection": "47",
+  "document": {
+    "username": "john_doe",
+    "email": "john@example.com",
+    "age": 30,
+    "status": "active",
+    "_id": "47_1760467286502_1",
+    "_createdAt": 1760467286503,
+    "_updatedAt": 1760467286503
+  }
+}
+{
+  "op": "INSERT",
+  "collection": "5",
+  "document": {
+    "username": "john_doe",
+    "email": "john@example.com",
+    "age": 30,
+    "status": "active",
+    "_id": "5_1760467286504_1",
+    "_createdAt": 1760467286504,
+    "_updatedAt": 1760467286504
+  }
+}
+{
+  "op": "INSERT",
+  "collection": "6",
+  "document": {
+    "username": "test2",
+    "email": "john@example.com",
+    "age": 30,
+    "status": "active",
+    "_id": "6_1760467286505_1",
+    "_createdAt": 1760467286505,
+    "_updatedAt": 1760467286505
+  }
+}
+{
+  "op": "INSERT",
+  "collection": "5",
+  "document": {
+    "test": "test",
+    "_id": "5_1760467286506_2",
+    "_createdAt": 1760467286506,
+    "_updatedAt": 1760467286506
+  }
+}
