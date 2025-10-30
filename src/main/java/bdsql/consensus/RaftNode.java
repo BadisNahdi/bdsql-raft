@@ -24,6 +24,7 @@ import io.grpc.stub.StreamObserver;
 public class RaftNode {
     private final String id;
     private final int port;
+    private final String host;;
     private final ClusterInfo clusterInfo;
 
     private final RaftStateManager stateManager;
@@ -36,8 +37,9 @@ public class RaftNode {
 
     private Server grpcServer;
 
-    public RaftNode(String id, int port, ClusterInfo clusterInfo, Consumer<LogEntry> applyFn) throws IOException {
+    public RaftNode(String id, String host, int port, ClusterInfo clusterInfo, Consumer<LogEntry> applyFn) throws IOException {
         this.id = id;
+        this.host = host;
         this.port = port;
         this.clusterInfo = clusterInfo;
         String safeId = HttpUtils.sanitizeForFilename(id);
@@ -51,7 +53,7 @@ public class RaftNode {
         WriteAheadLog wal = new WriteAheadLog(storageDir.resolve("wal"));
         this.documentStore = new DocumentStore(storageDir.resolve("documents"));
 
-        this.stateManager = new RaftStateManager(id, persistentStateStore);
+        this.stateManager = new RaftStateManager(id, host, port, persistentStateStore);
 
         this.replicationManager = new RaftReplicationManager(id, clusterInfo, stateManager);
 

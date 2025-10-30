@@ -11,6 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
@@ -31,7 +32,6 @@ public class RaftHttpServer {
     private final ClusterInfo clusterInfo;
     private HttpServer httpServer;
     private final com.google.gson.Gson gson = new com.google.gson.Gson();
-
 
     public RaftHttpServer(
             String nodeId,
@@ -228,6 +228,17 @@ public class RaftHttpServer {
             long idx = logManager.appendEntry(cmd.getBytes(StandardCharsets.UTF_8));
 
             if (idx < 0) {
+                Optional<String> maybeLeader = replicationManager.getLikelyLeader();
+                if (maybeLeader.isPresent()) {
+                    String leader = maybeLeader.get();
+                    String location = HttpUtils.leaderHttpUrl(leader, "/api/kv");
+                    if (location != null) {
+                        exchange.getResponseHeaders().set("Location", location);
+                        String errorBody = "{\"error\":\"not_leader\",\"redirect\":\"" + escapeJson(location) + "\"}";
+                        sendJson(exchange, 307, errorBody);
+                        return;
+                    }
+                }
                 sendJson(exchange, 500, "{\"error\":\"not_leader_or_failed\"}");
             } else {
                 sendJson(exchange, 200, "{\"index\":" + idx + "}");
@@ -243,6 +254,17 @@ public class RaftHttpServer {
             long idx = logManager.appendEntry(cmd.getBytes(StandardCharsets.UTF_8));
 
             if (idx < 0) {
+                Optional<String> maybeLeader = replicationManager.getLikelyLeader();
+                if (maybeLeader.isPresent()) {
+                    String leader = maybeLeader.get();
+                    String location = HttpUtils.leaderHttpUrl(leader, "/api/kv");
+                    if (location != null) {
+                        exchange.getResponseHeaders().set("Location", location);
+                        String errorBody = "{\"error\":\"not_leader\",\"redirect\":\"" + escapeJson(location) + "\"}";
+                        sendJson(exchange, 307, errorBody);
+                        return;
+                    }
+                }
                 sendJson(exchange, 500, "{\"error\":\"not_leader_or_failed\"}");
             } else {
                 sendJson(exchange, 200, "{\"index\":" + idx + "}");
@@ -265,6 +287,18 @@ public class RaftHttpServer {
         long idx = logManager.appendEntry(cmd.getBytes(StandardCharsets.UTF_8));
 
         if (idx < 0) {
+            Optional<String> maybeLeader = replicationManager.getLikelyLeader();
+            if (maybeLeader.isPresent()) {
+                String leader = maybeLeader.get();
+                String location = HttpUtils.leaderHttpUrl(leader,
+                        exchange.getRequestURI().getPath() + "?" + exchange.getRequestURI().getQuery());
+                if (location != null) {
+                    exchange.getResponseHeaders().set("Location", location);
+                    String errorBody = "{\"error\":\"not_leader\",\"redirect\":\"" + escapeJson(location) + "\"}";
+                    sendJson(exchange, 307, errorBody);
+                    return;
+                }
+            }
             sendJson(exchange, 500, "{\"error\":\"not_leader_or_failed\"}");
         } else {
             sendJson(exchange, 200, "{\"index\":" + idx + "}");
@@ -330,10 +364,23 @@ public class RaftHttpServer {
 
         long idx = logManager.appendEntry(gson.toJson(cmd).getBytes(StandardCharsets.UTF_8));
         if (idx < 0) {
+            Optional<String> maybeLeader = replicationManager.getLikelyLeader();
+            if (maybeLeader.isPresent()) {
+                String leaderAddr = maybeLeader.get();
+                String location = HttpUtils.leaderHttpUrl(leaderAddr, exchange.getRequestURI().getPath()
+                        + (exchange.getRequestURI().getQuery() != null ? "?" + exchange.getRequestURI().getQuery()
+                                : ""));
+                if (location != null) {
+                    exchange.getResponseHeaders().set("Location", location);
+                    String errorBody = "{\"error\":\"not_leader\",\"redirect\":\"" + escapeJson(location) + "\"}";
+                    sendJson(exchange, 307, errorBody);
+                    return;
+                }
+            }
             sendJson(exchange, 500, "{\"error\":\"not_leader_or_failed\"}");
-        } else {
-            sendJson(exchange, 200, "{\"index\":" + idx + "}");
+            return;
         }
+        sendJson(exchange, 200, "{\"index\":" + idx + "}");
     }
 
     private void handleDocGet(HttpExchange exchange) throws IOException {
@@ -407,6 +454,17 @@ public class RaftHttpServer {
 
         long idx = logManager.appendEntry(gson.toJson(cmd).getBytes(StandardCharsets.UTF_8));
         if (idx < 0) {
+            Optional<String> maybeLeader = replicationManager.getLikelyLeader();
+            if (maybeLeader.isPresent()) {
+                String leader = maybeLeader.get();
+                String location = HttpUtils.leaderHttpUrl(leader, exchange.getRequestURI().getPath());
+                if (location != null) {
+                    exchange.getResponseHeaders().set("Location", location);
+                    String errorBody = "{\"error\":\"not_leader\",\"redirect\":\"" + escapeJson(location) + "\"}";
+                    sendJson(exchange, 307, errorBody);
+                    return;
+                }
+            }
             sendJson(exchange, 500, "{\"error\":\"not_leader_or_failed\"}");
         } else {
             sendJson(exchange, 200, "{\"index\":" + idx + "}");
@@ -444,6 +502,20 @@ public class RaftHttpServer {
 
         long idx = logManager.appendEntry(gson.toJson(cmd).getBytes(StandardCharsets.UTF_8));
         if (idx < 0) {
+            Optional<String> maybeLeader = replicationManager.getLikelyLeader();
+            if (maybeLeader.isPresent()) {
+                String leader = maybeLeader.get();
+                String location = HttpUtils.leaderHttpUrl(leader,
+                        exchange.getRequestURI().getPath() + (exchange.getRequestURI().getQuery() != null
+                                ? "?" + exchange.getRequestURI().getQuery()
+                                : ""));
+                if (location != null) {
+                    exchange.getResponseHeaders().set("Location", location);
+                    String errorBody = "{\"error\":\"not_leader\",\"redirect\":\"" + escapeJson(location) + "\"}";
+                    sendJson(exchange, 307, errorBody);
+                    return;
+                }
+            }
             sendJson(exchange, 500, "{\"error\":\"not_leader_or_failed\"}");
         } else {
             sendJson(exchange, 200, "{\"index\":" + idx + "}");
@@ -485,6 +557,17 @@ public class RaftHttpServer {
 
             long idx = logManager.appendEntry(gson.toJson(cmd).getBytes(StandardCharsets.UTF_8));
             if (idx < 0) {
+                Optional<String> maybeLeader = replicationManager.getLikelyLeader();
+                if (maybeLeader.isPresent()) {
+                    String leader = maybeLeader.get();
+                    String location = HttpUtils.leaderHttpUrl(leader, exchange.getRequestURI().getPath());
+                    if (location != null) {
+                        exchange.getResponseHeaders().set("Location", location);
+                        String errorBody = "{\"error\":\"not_leader\",\"redirect\":\"" + escapeJson(location) + "\"}";
+                        sendJson(exchange, 307, errorBody);
+                        return;
+                    }
+                }
                 sendJson(exchange, 500, "{\"error\":\"not_leader_or_failed\"}");
             } else {
                 sendJson(exchange, 200, "{\"index\":" + idx + "}");
@@ -496,7 +579,12 @@ public class RaftHttpServer {
 
     private static void sendJson(HttpExchange exchange, int status, String json) throws IOException {
         byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+
         exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+        exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+        exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
         exchange.sendResponseHeaders(status, bytes.length);
         try (OutputStream os = exchange.getResponseBody()) {
             os.write(bytes);

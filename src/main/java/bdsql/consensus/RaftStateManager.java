@@ -8,13 +8,17 @@ import bdsql.storage.PersistentStateStore.PersistentState;
 
 public class RaftStateManager {
     private final String nodeId;
+    private final String host;
+    private final int port;
     private final PersistentStateStore persistentStateStore;
     private final AtomicLong currentTerm = new AtomicLong(0);
     private volatile String votedFor = null;
     private volatile RaftState state = RaftState.FOLLOWER;
 
-    public RaftStateManager(String nodeId, PersistentStateStore persistentStateStore) throws IOException {
+    public RaftStateManager(String nodeId, String host, int  port, PersistentStateStore persistentStateStore) throws IOException {
         this.nodeId = nodeId;
+        this.host = host;
+        this.port = port;
         this.persistentStateStore = persistentStateStore;
         
         PersistentState persisted = persistentStateStore.read();
@@ -110,5 +114,12 @@ public class RaftStateManager {
         }
 
         return false;
+    }
+    
+    public String getHost() {
+        return host;
+    }
+    public int getPort() {
+        return port;
     }
 }
