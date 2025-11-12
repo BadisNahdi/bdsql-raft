@@ -18,11 +18,11 @@ public class RaftLogManager {
     private final List<LogEntry> log = Collections.synchronizedList(new ArrayList<>());
     private final Consumer<LogEntry> applyFn;
     private final ConcurrentHashMap<Long, CompletableFuture<Boolean>> pendingCommits = new ConcurrentHashMap<>();
-    
+
     private volatile long commitIndex = 0;
     private volatile long lastApplied = 0;
     private final long commitTimeoutMs = 3000L;
-    
+
     private final RaftStateManager stateManager;
     private final RaftReplicationManager replicationManager;
 
@@ -37,14 +37,14 @@ public class RaftLogManager {
         this.applyFn = applyFn;
         this.stateManager = stateManager;
         this.replicationManager = replicationManager;
-        
+
         initializeLog();
     }
 
     private void initializeLog() throws IOException {
         log.clear();
         log.add(new LogEntry(0, 0, new byte[0]));
-        
+
         List<WALRecord> records = wal.readAll();
         for (WALRecord r : records) {
             long expected = log.size();
@@ -93,6 +93,12 @@ public class RaftLogManager {
         }
     }
 
+    public List<LogEntry> getAllEntries() {
+        synchronized (log) {
+            return new ArrayList<>(log);
+        }
+    }
+
     public long appendEntry(byte[] data) {
         if (!stateManager.isLeader()) {
             System.err.println("appendEntry: not leader");
@@ -101,7 +107,7 @@ public class RaftLogManager {
 
         long idx;
         long term = stateManager.getCurrentTerm();
-        
+
         synchronized (log) {
             try {
                 long appended = wal.appendWithExpectedIndex(wal.getLastIndex() + 1, term, data);
@@ -137,12 +143,12 @@ public class RaftLogManager {
             long prevTerm,
             List<bdsql.consensus.rpc.LogEntry> entries,
             long leaderCommit) {
-        
+
         synchronized (log) {
             if (prevIndex >= log.size()) {
                 return new AppendEntriesResult(false, "prevIndex out of bounds");
             }
-            
+
             if (log.get((int) prevIndex).term() != prevTerm) {
                 return new AppendEntriesResult(false, "term mismatch at prevIndex");
             }
@@ -160,7 +166,8 @@ public class RaftLogManager {
                         try {
                             wal.truncateSuffixFrom(log.size() - 1);
                         } catch (IOException ioe) {
-                            System.err.println(nodeId + " failed to truncate WAL during conflict resolution: " + ioe.getMessage());
+                            System.err.println(
+                                    nodeId + " failed to truncate WAL during conflict resolution: " + ioe.getMessage());
                             return new AppendEntriesResult(false, "WAL truncation failed");
                         }
                     }
@@ -171,7 +178,8 @@ public class RaftLogManager {
                     try {
                         long appended = wal.appendWithExpectedIndex(wal.getLastIndex() + 1, incomingTerm, data);
                         if (appended != incomingIdx) {
-                            System.err.println(nodeId + " WAL appended index mismatch: appended=" + appended + " expected=" + incomingIdx);
+                            System.err.println(nodeId + " WAL appended index mismatch: appended=" + appended
+                                    + " expected=" + incomingIdx);
                             wal.truncateSuffixFrom(incomingIdx - 1);
                             return new AppendEntriesResult(false, "index mismatch");
                         }
@@ -201,17 +209,17 @@ public class RaftLogManager {
         synchronized (log) {
             lastIndex = log.size() - 1;
         }
-        
+
         for (long n = commitIndex + 1; n <= lastIndex; n++) {
             final long candidate = n;
             long termAtN = log.get((int) candidate).term();
-            
+
             if (termAtN != stateManager.getCurrentTerm()) {
                 continue;
             }
 
             int replicaCount = replicationManager.countReplicasWithIndex(candidate);
-            
+
             if (replicaCount >= replicationManager.getMajorityCount()) {
                 commitIndex = candidate;
                 applyEntries();
@@ -231,7 +239,7 @@ public class RaftLogManager {
             } catch (Exception ex) {
                 System.err.println("apply failed: " + ex.getMessage());
             }
-            
+
             CompletableFuture<Boolean> f = pendingCommits.remove(lastApplied);
             if (f != null) {
                 f.complete(Boolean.TRUE);

@@ -1,3 +1,4 @@
 target/
 .vscode/
 data/
+dependency-reduced-pom.xml
