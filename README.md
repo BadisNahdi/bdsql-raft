@@ -1,7 +1,3 @@
-Here is a comprehensive README for your project, based on the code you've provided.
-
------
-
 # BDSQL: A Replicated Document Store
 
 BDSQL is a fault-tolerant, distributed NoSQL document database built in Java.
